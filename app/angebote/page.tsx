@@ -93,7 +93,7 @@ export default function AngebotePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
         {/* Header - Coinbase inspired */}
         <div className="mb-12 text-center">
           {/* Badge */}
@@ -279,7 +279,7 @@ export default function AngebotePage() {
 
         {/* Results - Modern styling */}
         <div className="mb-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-3 sm:gap-4">
             <div className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full font-medium text-sm">
               {filteredDachboxes.length} Dachboxen gefunden
             </div>
@@ -291,11 +291,13 @@ export default function AngebotePage() {
           </div>
         </div>
 
-        {/* Dachbox Grid - Narrower borders */}
+        {/* Dachbox Grid - Responsive */}
         {filteredDachboxes.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
             {filteredDachboxes.map((dachbox) => (
-              <DachboxCard key={dachbox.id} dachbox={dachbox} />
+              <div key={dachbox.id} className="flex">
+                <DachboxCard dachbox={dachbox} />
+              </div>
             ))}
           </div>
         ) : (

@@ -15,7 +15,7 @@ git init
 git add .
 git commit -m "Initial commit: DachBox platform"
 git branch -M main
-git remote add origin https://github.com/DEIN-USERNAME/dachbox-platform.git
+git remote add origin https://github.com/MaximilianLakner/dachbox-platform.git
 git push -u origin main
 ```
 

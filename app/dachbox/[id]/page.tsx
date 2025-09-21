@@ -21,7 +21,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import ReviewList from '@/components/ReviewList'
 import ReviewForm from '@/components/ReviewForm'
-import BookingPaymentFlow from '@/components/BookingPaymentFlow'
+import StripeCheckoutButton from '@/components/StripeCheckoutButton'
 
 interface DachboxDetailPageProps {
   params: {
@@ -34,7 +34,6 @@ export default function DachboxDetailPage({ params }: DachboxDetailPageProps) {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [showBookingModal, setShowBookingModal] = useState(false)
-  const [showPaymentFlow, setShowPaymentFlow] = useState(false)
   const [dachbox, setDachbox] = useState<Dachbox | null>(null)
   const [loading, setLoading] = useState(true)
   const [reviewRefreshTrigger, setReviewRefreshTrigger] = useState(0)
@@ -105,26 +104,11 @@ export default function DachboxDetailPage({ params }: DachboxDetailPageProps) {
     return days * dachbox.price_per_day + (dachbox.roof_rack_price || 0)
   }
 
-  const handleBookingClick = () => {
+  const handleBookNow = () => {
     if (!user) {
       router.push('/anmelden')
       return
     }
-    setShowBookingModal(true)
-  }
-
-  const handlePaymentStart = () => {
-    setShowBookingModal(false)
-    setShowPaymentFlow(true)
-  }
-
-  const handlePaymentSuccess = (bookingId: string) => {
-    setShowPaymentFlow(false)
-    router.push(`/booking-success?booking_id=${bookingId}`)
-  }
-
-  const handlePaymentCancel = () => {
-    setShowPaymentFlow(false)
     setShowBookingModal(true)
   }
 
@@ -325,7 +309,7 @@ export default function DachboxDetailPage({ params }: DachboxDetailPageProps) {
                 )}
 
                 <button
-                  onClick={handleBookingClick}
+                  onClick={handleBookNow}
                   disabled={!startDate || !endDate || !isValidDateRange()}
                   className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -458,45 +442,30 @@ export default function DachboxDetailPage({ params }: DachboxDetailPageProps) {
                   </div>
                 </div>
               </div>
-              <div className="flex space-x-4">
+              <div className="space-y-3">
+                <StripeCheckoutButton
+                  amount={calculateTotalPrice() * 100} // in Cent umrechnen
+                  dachboxId={dachbox.id}
+                  onSuccess={() => {
+                    setShowBookingModal(false);
+                    // Hier könnten Sie eine Erfolgsmeldung anzeigen
+                    alert('Zahlung erfolgreich! Vielen Dank für Ihre Buchung.');
+                  }}
+                  onError={(error) => {
+                    console.error('Fehler bei der Zahlung:', error);
+                    alert('Bei der Zahlung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.');
+                  }}
+                  className="w-full bg-blue-600 text-white py-3 px-6 rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Jetzt sicher bezahlen
+                </StripeCheckoutButton>
+                
                 <button
                   onClick={() => setShowBookingModal(false)}
-                  className="btn-secondary flex-1"
+                  className="w-full border border-gray-300 text-gray-700 py-3 px-6 rounded-md hover:bg-gray-50 transition-colors"
                 >
                   Abbrechen
                 </button>
-                <button
-                  onClick={handlePaymentStart}
-                  className="btn-primary flex-1"
-                >
-                  Bezahlen
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Payment Flow */}
-        {showPaymentFlow && dachbox && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <BookingPaymentFlow
-                  bookingData={{
-                    dachbox_id: dachbox.id,
-                    dachbox_title: `${dachbox.brand} ${dachbox.model}`,
-                    dachbox_location: `${dachbox.pickup_city}, ${dachbox.pickup_postal_code}`,
-                    start_date: startDate,
-                    end_date: endDate,
-                    total_days: Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)),
-                    price_per_day: dachbox.price_per_day,
-                    landlord_name: 'Vermieter', // Will be fetched from user data
-                    landlord_email: 'landlord@example.com', // Will be fetched from user data
-                    landlord_phone: '+49 123 456789' // Will be fetched from user data
-                  }}
-                  onSuccess={handlePaymentSuccess}
-                  onCancel={handlePaymentCancel}
-                />
               </div>
             </div>
           </div>

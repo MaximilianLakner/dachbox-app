@@ -22,12 +22,13 @@ import { User as UserType, Dachbox } from '@/types'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase-client'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import StripeConnectSetup from '@/components/StripeConnectSetup'
 
 // Real data from Supabase
 
 export default function AccountPage() {
-  const [activeTab, setActiveTab] = useState('profile')
+  const [activeTab, setActiveTab] = useState('payment')
   const [isEditing, setIsEditing] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleteConfirmation, setDeleteConfirmation] = useState('')
@@ -160,6 +161,7 @@ export default function AccountPage() {
 
   const tabs = [
     { id: 'profile', label: 'Profil', icon: User },
+    { id: 'payment', label: 'Zahlungsmethoden', icon: CreditCard },
     { id: 'dachboxes', label: 'Meine Dachboxen', icon: Car },
     { id: 'bookings', label: 'Meine Buchungen', icon: Calendar },
     { id: 'reviews', label: 'Bewertungen', icon: Star },
@@ -208,6 +210,54 @@ export default function AccountPage() {
 
           {/* Main Content */}
           <div className="lg:col-span-3">
+            {/* Payment Tab */}
+            {activeTab === 'payment' && (
+              <div className="card">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Zahlungsmethoden
+                  </h2>
+                  <Link 
+                    href="/account/payment"
+                    className="btn-primary flex items-center space-x-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Zahlungsmethode hinzufügen</span>
+                  </Link>
+                </div>
+                
+                <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h2a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-blue-700">
+                        Ihre Zahlungsdaten werden sicher über Stripe verarbeitet und niemals auf unseren Servern gespeichert.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 text-center">
+                  <CreditCard className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">Keine Zahlungsmethoden</h3>
+                  <p className="mt-1 text-sm text-gray-500">Fügen Sie eine Zahlungsmethode hinzu, um schneller zu buchen.</p>
+                  <div className="mt-6">
+                    <Link
+                      href="/account/payment"
+                      className="btn-primary inline-flex items-center"
+                    >
+                      <Plus className="-ml-1 mr-2 h-4 w-4" />
+                      Zahlungsmethode hinzufügen
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {/* Profile Tab */}
             {activeTab === 'profile' && (
               <div className="card">

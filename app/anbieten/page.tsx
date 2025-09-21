@@ -8,6 +8,7 @@ import toast from 'react-hot-toast'
 import { supabase, testMinimalInsert } from '@/lib/supabase-client'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import StripeConnectSetup from '@/components/StripeConnectSetup'
 
 interface DachboxFormData {
@@ -294,12 +295,26 @@ export default function AnbietenPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Dachbox anbieten
-          </h1>
-          <p className="text-xl text-gray-600">
-            Verdiene Geld mit deiner Dachbox und hilf anderen bei ihrem nächsten Abenteuer
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Dachbox anbieten</h1>
+          <p className="text-gray-600 mb-4">
+            Füllen Sie das Formular aus, um Ihre Dachbox zu vermieten und zusätzliches Geld zu verdienen.
           </p>
+          
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 rounded">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <CreditCard className="h-5 w-5 text-blue-400" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-blue-700">
+                  <strong>Wichtig:</strong> Um Zahlungen zu erhalten, müssen Sie eine Zahlungsmethode in Ihrem Konto hinterlegen. 
+                  <Link href="/account?tab=payment" className="ml-1 font-medium text-blue-700 hover:text-blue-600 underline">
+                    Jetzt Zahlungsmethode hinzufügen
+                  </Link>
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Stripe Connect Setup Warning */}

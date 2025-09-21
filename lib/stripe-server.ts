@@ -1,113 +1,53 @@
-import Stripe from 'stripe'
+import Stripe from 'stripe';
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is not set')
-}
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+  apiVersion: '2025-08-27.basil',
+});
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
-})
+// Erstellt ein Stripe Connect Express-Konto für einen Anbieter
+export async function createConnectAccount(email: string) {
+  return await stripe.accounts.create({
+    type: 'express',
+    email,
+    capabilities: {
+      transfers: { requested: true },
+    },
+	});
 
-// Platform fee percentage (10%)
-export const PLATFORM_FEE_PERCENTAGE = 0.10
-
-// Create Stripe Connect account for landlords
-export async function createConnectAccount(email: string, country: string = 'DE') {
-  try {
-    const account = await stripe.accounts.create({
-      type: 'express',
-      country,
-      email,
-      capabilities: {
-        card_payments: { requested: true },
-        transfers: { requested: true },
-      },
-      business_type: 'individual',
-    })
-    
-    return account
-  } catch (error) {
-    console.error('Error creating Stripe Connect account:', error)
-    throw error
-  }
-}
-
-// Create account link for onboarding
-export async function createAccountLink(accountId: string, refreshUrl: string, returnUrl: string) {
-  try {
-    const accountLink = await stripe.accountLinks.create({
-      account: accountId,
-      refresh_url: refreshUrl,
-      return_url: returnUrl,
-      type: 'account_onboarding',
-    })
-    
-    return accountLink
-  } catch (error) {
-    console.error('Error creating account link:', error)
-    throw error
-  }
-}
-
-// Check if account is fully onboarded
-export async function checkAccountStatus(accountId: string) {
-  try {
-    const account = await stripe.accounts.retrieve(accountId)
-    
-    return {
-      charges_enabled: account.charges_enabled,
-      payouts_enabled: account.payouts_enabled,
-      details_submitted: account.details_submitted,
-      requirements: account.requirements,
-    }
-  } catch (error) {
-    console.error('Error checking account status:', error)
-    throw error
-  }
-}
-
-// Create payment intent with platform fee
+// Erstellt einen PaymentIntent für eine Buchung mit Plattformgebühr und Auszahlung an Anbieter
 export async function createPaymentIntent(
-  amount: number, // in cents
-  currency: string = 'eur',
-  connectedAccountId: string,
-  metadata: Record<string, string> = {}
+  amount: number,
+  currency: string,
+  landlordStripeAccountId: string,
+  metadata: Record<string, any>
 ) {
-  try {
-    const platformFee = Math.round(amount * PLATFORM_FEE_PERCENTAGE)
-    
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount,
-      currency,
-      application_fee_amount: platformFee,
-      transfer_data: {
-        destination: connectedAccountId,
-      },
-      metadata,
-      automatic_payment_methods: {
-        enabled: true,
-      },
-    })
-    
-    return paymentIntent
-  } catch (error) {
-    console.error('Error creating payment intent:', error)
-    throw error
-  }
+  return await stripe.paymentIntents.create({
+    amount,
+    currency,
+    payment_method_types: ['card'],
+    application_fee_amount: Math.round(amount * 0.1), // 10% Plattformgebühr
+    transfer_data: {
+      destination: landlordStripeAccountId,
+    },
+    metadata,
+  });
 }
 
-// Create customer for recurring payments
-export async function createCustomer(email: string, name?: string, phone?: string) {
-  try {
-    const customer = await stripe.customers.create({
-      email,
-      name,
-      phone,
-    })
-    
-    return customer
-  } catch (error) {
-    console.error('Error creating customer:', error)
-    throw error
-  }
+// Erstellt einen Stripe Customer
+export async function createCustomer(email: string, name: string, phone?: string) {
+  return await stripe.customers.create({
+    email,
+    name,
+    phone,
+  });
+}
+
+// Erstellt einen Onboarding-Link für das Stripe-Konto
+export async function createAccountLink(accountId: string, refreshUrl: string, returnUrl: string) {
+  return await stripe.accountLinks.create({
+    account: accountId,
+    refresh_url: refreshUrl,
+    return_url: returnUrl,
+    type: 'account_onboarding',
+  });
 }

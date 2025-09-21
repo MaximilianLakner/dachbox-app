@@ -92,53 +92,127 @@ export default function AngebotePage() {
   ).length + (searchLocation ? 1 : 0)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
-      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
-        {/* Header - Coinbase inspired */}
-        <div className="mb-12 text-center">
-          {/* Badge */}
-          <div className="inline-flex items-center px-4 py-2 bg-orange-100 rounded-full text-orange-700 text-sm font-medium mb-6">
-            <span className="w-2 h-2 bg-orange-500 rounded-full mr-2 animate-pulse"></span>
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        {/* Header */}
+        <div className="text-center max-w-4xl mx-auto mb-12">
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/80 backdrop-blur-sm px-4 py-2 text-sm font-medium text-orange-600 shadow-sm ring-1 ring-black/5 mb-8">
+            <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse" />
             Verfügbare Dachboxen
           </div>
           
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-            Dachboxen
-            <span className="block text-orange-500">finden</span>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 leading-tight mb-6">
+            <span className="block bg-gradient-to-r from-gray-900 via-gray-800 to-orange-600 bg-clip-text text-transparent">
+              Dachboxen finden
+            </span>
           </h1>
-          <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
             Finde die perfekte Dachbox für deinen nächsten Urlaub –
-            <br className="hidden md:block" />
             hochwertig, geprüft und sofort verfügbar.
           </p>
         </div>
 
-        {/* Search and Filters - Modern design */}
-        <div className="bg-white rounded-3xl shadow-xl border border-gray-200 p-8 mb-12">
-          {/* Search Bar */}
-          <div className="flex flex-col lg:flex-row gap-4 mb-6">
-            <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+        {/* Search and Filters */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-12">
+          <div className="flex flex-col md:flex-row gap-4 items-center">
+            <div className="relative flex-1 w-full">
+              <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
                 placeholder="Stadt oder PLZ eingeben..."
                 value={searchLocation}
                 onChange={(e) => setSearchLocation(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-orange-100 focus:border-orange-500 transition-all duration-200 text-lg"
+                className="w-full pl-12 pr-4 py-3 text-base sm:text-lg bg-transparent border-0 focus:ring-0 focus:outline-none"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && searchLocation) {
+                    setFilteredDachboxes(
+                      allDachboxes.filter(dachbox => 
+                        dachbox.pickup_city.toLowerCase().includes(searchLocation.toLowerCase()) ||
+                        dachbox.pickup_postal_code.includes(searchLocation)
+                      )
+                    )
+                  }
+                }}
               />
+              {searchLocation && (
+                <button
+                  onClick={() => setSearchLocation('')}
+                  className="absolute right-16 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )}
+              <button
+                onClick={() => setFilteredDachboxes(
+                  allDachboxes.filter(dachbox => 
+                    searchLocation && (
+                      dachbox.pickup_city.toLowerCase().includes(searchLocation.toLowerCase()) ||
+                      dachbox.pickup_postal_code.includes(searchLocation)
+                    )
+                  )
+                )}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm h-10 flex items-center"
+              >
+                Suchen
+              </button>
             </div>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg text-sm"
+              className="flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg border border-gray-200 font-medium transition-colors text-sm whitespace-nowrap h-10 w-full md:w-auto"
             >
               <Filter className="w-4 h-4" />
-              Filter
+              Filter {activeFiltersCount > 0 && `(${activeFiltersCount})`}
             </button>
           </div>
 
+          {/* Active Filters */}
+          {(activeFiltersCount > 0 || searchLocation) && (
+            <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-gray-100">
+              {searchLocation && (
+                <div className="flex items-center bg-gray-50 text-gray-700 px-3 py-1.5 rounded-lg text-sm border border-gray-200">
+                  <span>Ort: {searchLocation}</span>
+                  <button 
+                    onClick={() => setSearchLocation('')}
+                    className="ml-2 text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+              {Object.entries(filters).map(([key, value]) => {
+                if (!value || (Array.isArray(value) && value.length === 0)) return null
+                
+                let displayValue = value
+                if (key === 'mounting_type' && Array.isArray(value)) {
+                  displayValue = value.join(', ')
+                } else if (key === 'has_lock' || key === 'includes_roof_rack') {
+                  displayValue = value ? 'Ja' : 'Nein'
+                }
+                
+                return (
+                  <div key={key} className="flex items-center bg-gray-50 text-gray-700 px-3 py-1.5 rounded-lg text-sm border border-gray-200">
+                    <span className="capitalize">{key.replace(/_/g, ' ')}: {displayValue}</span>
+                    <button 
+                      onClick={() => setFilters({...filters, [key]: undefined})}
+                      className="ml-2 text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )
+              })}
+              <button 
+                onClick={clearFilters}
+                className="text-orange-500 hover:text-orange-700 text-sm font-medium ml-2 hover:underline"
+              >
+                Alle Filter zurücksetzen
+              </button>
+            </div>
+          )}
+
           {/* Filters */}
           {showFilters && (
-            <div className="bg-white rounded-2xl border border-gray-200 py-6 px-6 shadow-md mb-8">
+            <div className="mt-6 pt-6 border-t border-gray-100">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {/* Price Range */}
                 <div>
@@ -277,49 +351,26 @@ export default function AngebotePage() {
           )}
         </div>
 
-        {/* Results - Modern styling */}
-        <div className="mb-8">
-          <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-3 sm:gap-4">
-            <div className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full font-medium text-sm">
-              {filteredDachboxes.length} Dachboxen gefunden
-            </div>
-            {searchLocation && (
-              <div className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">
-                in {searchLocation}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Dachbox Grid - Responsive */}
+        {/* Dachboxen Grid */}
         {filteredDachboxes.length > 0 ? (
-          <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 mb-10">
             {filteredDachboxes.map((dachbox) => (
-              <div key={dachbox.id} className="flex">
-                <DachboxCard dachbox={dachbox} />
-              </div>
+              <DachboxCard key={dachbox.id} dachbox={dachbox} />
             ))}
           </div>
         ) : (
-          <div className="max-w-2xl mx-auto">
-            <div className="bg-white rounded-3xl border border-gray-200 p-12 shadow-xl text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-8">
-                <Search className="w-10 h-10 text-gray-500" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                Keine Dachboxen gefunden
-              </h3>
-              <p className="text-gray-600 mb-8 text-lg leading-relaxed">
-                Versuche es mit anderen Suchkriterien oder erweitere deinen Suchradius.
-                <br />Neue Angebote werden täglich hinzugefügt!
-              </p>
-              <button
-                onClick={clearFilters}
-                className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-8 py-4 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 text-lg"
-              >
-                Filter zurücksetzen
-              </button>
+          <div className="max-w-2xl mx-auto py-16 text-center">
+            <div className="w-20 h-20 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Search className="w-10 h-10 text-orange-500" />
             </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">Keine Ergebnisse gefunden</h3>
+            <p className="text-gray-600 mb-6">Versuche deine Suchkriterien zu ändern oder setze die Filter zurück.</p>
+            <button
+              onClick={clearFilters}
+              className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-lg font-medium transition-colors text-sm"
+            >
+              Filter zurücksetzen
+            </button>
           </div>
         )}
       </div>
